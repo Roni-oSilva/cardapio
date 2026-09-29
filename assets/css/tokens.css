@@ -1,0 +1,174 @@
+/* ==========================================================================
+   Fornalha — Design tokens
+   Direção visual: creme + vermelho tomate + laranja retrô, tipografia condensada
+   (Anton), script retrô na marca (Yellowtail) e assinatura fina (Herr Von Muellerhoff).
+   Contornos finos no lugar de sombras.
+   Tema claro em :root; escuro via prefers-color-scheme (sem data-theme) ou data-theme="dark".
+   ========================================================================== */
+:root {
+  color-scheme: light;
+
+  /* Tipografia */
+  --font-display: "Anton", "Oswald", "Impact", "Arial Narrow", sans-serif;
+  --font-script: "Yellowtail", "Brush Script MT", cursive;
+  --font-sign: "Herr Von Muellerhoff", "Yellowtail", cursive;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --display-stretch: normal;
+  --display-weight: 400;
+  --fs-xs: 0.75rem;   /* 12 */
+  --fs-sm: 0.8125rem; /* 13 */
+  --fs-md: 0.9375rem; /* 15 */
+  --fs-lg: 1.0625rem; /* 17 */
+  --fs-xl: 1.25rem;   /* 20 */
+  --fs-2xl: 1.625rem; /* 26 */
+  --fs-3xl: 2.25rem;  /* 36 */
+  --fs-4xl: 3.25rem;  /* 52 */
+
+  /* Superfícies e tinta */
+  --bg: #F6EEE3;
+  --surface: #FFFAF3;
+  --surface-2: #FBF4EA;
+  --surface-3: #F0E4D4;
+  --line: #E6D6C2;
+  --line-strong: #CFB89D;
+  --ink: #2A1810;
+  --ink-2: #67503F;
+  --ink-3: #957E6C;
+  --ink-inverse: #FFFAF3;
+  --cream: #F4E1C4;
+
+  /* Marca: vermelho tomate + laranja retrô */
+  --brand: #B8231C;
+  --brand-hover: #A01D17;
+  --brand-press: #861711;
+  --brand-soft: #F7DED5;
+  --brand-ink: #A11E17;
+  --amber: #FF6B12;
+  --amber-soft: #FFE7D4;
+  --amber-ink: #B54700;
+
+  /* Semânticas (não usar como acento) */
+  --ok: #1F7A45;
+  --ok-soft: #E1F0E4;
+  --warn: #9A5A00;
+  --warn-soft: #FCEBCB;
+  --danger: #B8231C;
+  --danger-soft: #F9E0DA;
+  --info: #2F57B5;
+  --info-soft: #E3EAF8;
+  --wa: #128C4A;
+  --wa-hover: #0E7A40;
+
+  /* Fundo das fotos */
+  --board: #EADAC5;
+  --board-2: #F8EFE3;
+  --board-ink: #F4E1C4;
+
+  /* Traço, elevação, raio, movimento */
+  --stroke: 1.5px;
+  --shadow-1: 0 1px 2px rgb(42 24 16 / .05);
+  --shadow-2: 0 10px 28px rgb(42 24 16 / .10);
+  --shadow-3: 0 24px 64px rgb(42 24 16 / .22);
+  --ring: 0 0 0 3px rgb(184 35 28 / .25);
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --t-fast: 120ms;
+  --t-base: 200ms;
+  --t-slow: 320ms;
+
+  /* Layout */
+  --gutter: 16px;
+  --header-h: 64px;
+  --cats-h: 58px;
+  --container: 1280px;
+}
+
+@media (min-width: 768px) {
+  :root { --gutter: 24px; --header-h: 72px; }
+}
+@media (min-width: 1200px) {
+  :root { --gutter: 32px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #17100C;
+    --surface: #211710;
+    --surface-2: #281C14;
+    --surface-3: #33251B;
+    --line: #3B2B20;
+    --line-strong: #56432F;
+    --ink: #F6EEE3;
+    --ink-2: #D3C3B2;
+    --ink-3: #A48F7C;
+    --ink-inverse: #17100C;
+    --brand: #D1362C;
+    --brand-hover: #E04A3F;
+    --brand-press: #B32B22;
+    --brand-soft: #3A1611;
+    --brand-ink: #FF9384;
+    --amber: #FF7A2A;
+    --amber-soft: #3A2010;
+    --amber-ink: #FFB07A;
+    --ok: #4CC482;
+    --ok-soft: #14301F;
+    --warn: #F0AE4A;
+    --warn-soft: #33240D;
+    --danger: #FF7B6E;
+    --danger-soft: #3A1512;
+    --info: #8CAEFF;
+    --info-soft: #17223B;
+    --wa: #1B9C55;
+    --wa-hover: #22B062;
+    --board: #2B1D15;
+    --board-2: #3C2A1F;
+    --shadow-1: 0 1px 2px rgb(0 0 0 / .4);
+    --shadow-2: 0 10px 30px rgb(0 0 0 / .45);
+    --shadow-3: 0 24px 64px rgb(0 0 0 / .6);
+    --ring: 0 0 0 3px rgb(255 120 100 / .35);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #17100C;
+  --surface: #211710;
+  --surface-2: #281C14;
+  --surface-3: #33251B;
+  --line: #3B2B20;
+  --line-strong: #56432F;
+  --ink: #F6EEE3;
+  --ink-2: #D3C3B2;
+  --ink-3: #A48F7C;
+  --ink-inverse: #17100C;
+  --brand: #D1362C;
+  --brand-hover: #E04A3F;
+  --brand-press: #B32B22;
+  --brand-soft: #3A1611;
+  --brand-ink: #FF9384;
+  --amber: #FF7A2A;
+  --amber-soft: #3A2010;
+  --amber-ink: #FFB07A;
+  --ok: #4CC482;
+  --ok-soft: #14301F;
+  --warn: #F0AE4A;
+  --warn-soft: #33240D;
+  --danger: #FF7B6E;
+  --danger-soft: #3A1512;
+  --info: #8CAEFF;
+  --info-soft: #17223B;
+  --wa: #1B9C55;
+  --wa-hover: #22B062;
+  --board: #2B1D15;
+  --board-2: #3C2A1F;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / .4);
+  --shadow-2: 0 10px 30px rgb(0 0 0 / .45);
+  --shadow-3: 0 24px 64px rgb(0 0 0 / .6);
+  --ring: 0 0 0 3px rgb(255 120 100 / .35);
+}

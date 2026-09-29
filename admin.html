@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fornalha Painel</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1E1613">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Yellowtail&family=Herr+Von+Muellerhoff&family=Figtree:wght@400..800&display=swap">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body class="admin">
+  <div id="root"></div>
+
+  <!-- Drawer genérico (detalhe do pedido, formulários) -->
+  <div class="overlay" id="panel" hidden aria-hidden="true">
+    <div class="backdrop" data-close></div>
+    <section class="drawer panel-drawer" role="dialog" aria-modal="true" aria-labelledby="panelTitle"></section>
+  </div>
+
+  <!-- Sessão expirada -->
+  <div class="overlay overlay-center" id="expired" hidden aria-hidden="true">
+    <div class="backdrop"></div>
+    <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="expTitle" aria-describedby="expBody">
+      <div class="dialog-ico"><svg class="ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 6v6l4 2"/></svg></div>
+      <h2 class="dialog-title" id="expTitle">Sua sessão expirou</h2>
+      <p class="dialog-body" id="expBody">Por segurança, encerramos o acesso após 30 minutos sem atividade. Entre de novo para continuar. Tudo o que foi salvo continua lá.</p>
+      <div class="dialog-actions"><button type="button" class="btn btn-primary" data-act="relogin">Entrar novamente</button></div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/pizza.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/vendor/supabase.js"></script>
+  <script src="assets/js/backend.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fornalha Estados</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Yellowtail&family=Herr+Von+Muellerhoff&family=Figtree:wght@400..800&display=swap">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <style>
+    .gallery { max-width: 1280px; margin: 0 auto; padding: 24px var(--gutter) 64px; }
+    .g-head { display: grid; gap: 8px; margin-bottom: 28px; }
+    .g-title { font-size: clamp(2rem, 6vw, 3rem); }
+    .g-head p { color: var(--ink-2); max-width: 70ch; }
+    .g-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .g-section { padding-top: 32px; scroll-margin-top: 12px; }
+    .g-section > h2 { font-size: var(--fs-2xl); margin-bottom: 4px; }
+    .g-section > p { color: var(--ink-3); font-size: var(--fs-sm); margin-bottom: 16px; max-width: 70ch; }
+    .g-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); align-items: start; }
+    .g-item { display: grid; gap: 8px; min-width: 0; }
+    .g-label { display: flex; align-items: center; gap: 8px; font-size: var(--fs-xs); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+    .g-label code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; letter-spacing: 0; text-transform: none; font-weight: 600; padding: 2px 6px; border-radius: 6px; background: var(--surface-3); color: var(--ink-2); }
+    .g-frame { position: relative; border-radius: var(--r-lg); background: var(--bg); border: 1px solid var(--line); padding: 14px; overflow: hidden; }
+    .g-frame.is-surface { background: var(--surface); }
+    .g-frame .pgrid { grid-template-columns: 1fr; }
+    .g-frame .pcard { grid-template-columns: 1fr; grid-template-areas: "photo" "body"; padding: 0; overflow: hidden; }
+    .g-frame .pcard-photo { aspect-ratio: 16 / 11; border-radius: 0; }
+    .g-frame .pcard-body { padding: 4px 16px 16px; }
+    .g-frame .pcard-badges { left: 12px; top: 12px; }
+    .pcard.is-hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
+    .pcard.is-hover .card-art-pizza { transform: rotate(8deg) scale(1.03); transform-origin: 176px 110px; }
+    .pcard.is-pressed { transform: scale(.985); box-shadow: var(--shadow-1); }
+    .g-slice { width: 180px; margin: 0 auto; }
+    .g-static .toast { position: static; transform: none; opacity: 1; }
+    .g-static .net-banner { position: static; padding-top: 10px; border-radius: var(--r-md); }
+    .g-static .dialog { transform: none; opacity: 1; width: 100%; box-shadow: var(--shadow-2); }
+    .g-static .cart-bar { position: static; animation: none; background: none; padding: 0; }
+    .g-static .consent { position: static; animation: none; }
+    .g-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .g-done .done { padding: 8px 0; }
+    .g-done .done-art { width: 110px; }
+    .g-done .done-title { font-size: var(--fs-2xl); }
+  </style>
+</head>
+<body>
+  <main class="gallery" id="gallery"></main>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/pizza.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/estados.js"></script>
+</body>
+</html>
