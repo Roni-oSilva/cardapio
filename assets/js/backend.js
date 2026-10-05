@@ -28,7 +28,7 @@
   const toDb = patch => Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined).map(([k, v]) => [TO_DB[k] || k, v]));
 
   const mapSize = r => ({ id: r.id, name: r.name, cm: r.cm, slices: r.slices, maxFlavors: r.max_flavors, price: Number(r.price) });
-  const mapFlavor = r => ({ id: r.id, name: r.name, tier: r.tier, recipe: r.recipe, ingredients: r.ingredients, surcharge: r.surcharge || {}, badges: r.badges || [], available: r.available, sold: r.sold || 0, photo: r.photo_url || null });
+  const mapFlavor = r => ({ id: r.id, name: r.name, tier: r.tier, recipe: r.recipe, ingredients: r.ingredients, details: r.details || '', tags: r.tags || [], surcharge: r.surcharge || {}, badges: r.badges || [], available: r.available, sold: r.sold || 0, photo: r.photo_url || null });
   const mapProduct = r => ({
     id: r.id, category: r.category, kind: r.kind, name: r.name, description: r.description, price: Number(r.price),
     oldPrice: num(r.old_price), fixedSize: r.fixed_size || undefined, allowedTiers: r.allowed_tiers || undefined,
@@ -47,7 +47,7 @@
       time: d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       customer: r.customer_name, phone: U.maskPhone(r.customer_phone),
       total: Number(r.total), subtotal: Number(r.subtotal), fee: Number(r.fee),
-      pay: PAY[r.payment_method] || r.payment_method, status: r.status, mode: r.mode,
+      pay: PAY[r.payment_method] || r.payment_method, method: r.payment_method, changeFor: r.change_for ? Number(r.change_for) : null, status: r.status, mode: r.mode,
       district: r.address ? r.address.district : '—', address: r.address,
       items: r.summary || [], lines: r.items || [], note: notes.join(' · ')
     };

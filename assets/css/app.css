@@ -437,6 +437,7 @@ body:has(.overlay.is-open) .cart-bar, body:has(.overlay.is-open) .demo-fab { vis
 .pk-also { font-size: var(--fs-xs); color: var(--info); font-weight: 700; }
 .pk-side { flex: none; text-align: right; }
 .pk-price { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-2); }
+.pk-text .ftags { margin-top: 2px; }
 .pk-check { width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; }
 .pk-empty { list-style: none; }
 
@@ -555,6 +556,37 @@ body:has(#builder.is-open) .toasts, body:has(#checkout.is-open) .toasts { bottom
 
 /* ---------- Privacidade, demo, consentimento ---------- */
 .legal-sheet, .demo-sheet { max-height: 88dvh; }
+
+/* Selos e detalhes do sabor */
+.ftags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.ftag { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: var(--r-pill); border: var(--stroke) solid currentColor; font-size: 11px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; }
+.ftag-veg { color: var(--ok); background: var(--ok-soft); }
+.ftag-spicy { color: var(--amber-ink); background: var(--amber-soft); }
+.ftags-sm .ftag { height: 20px; font-size: 10px; padding: 0 7px; }
+.ftags-lg .ftag { height: 28px; font-size: var(--fs-xs); padding: 0 11px; }
+.pcard-more { justify-self: start; align-self: flex-start; display: inline-flex; align-items: center; gap: 2px; font-size: var(--fs-xs); text-decoration: none; text-transform: uppercase; letter-spacing: .04em; }
+.pcard-more:hover { text-decoration: underline; }
+.fi-sheet { max-height: 92dvh; }
+.fi-body { overflow-y: auto; padding: 0 20px 16px; display: grid; gap: 16px; overscroll-behavior: contain; }
+.fi-art { position: relative; width: min(280px, 70vw); height: min(280px, 70vw); justify-self: center; border-radius: var(--r-lg); overflow: hidden; background: var(--board); display: grid; place-items: center; }
+.fi-art .card-photo { width: 100%; height: 100%; object-fit: cover; }
+.fi-pizza { width: 88%; height: 88%; }
+.fi-art.is-off > svg, .fi-art.is-off > img { filter: grayscale(1) contrast(.85) brightness(.9); opacity: .65; }
+.fi-details { font-size: var(--fs-md); line-height: 1.45; color: var(--ink-2); }
+.fi-block { display: grid; gap: 8px; }
+.fi-h { font-size: var(--fs-xs); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.fi-ings { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.fi-ings li { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 4px 12px 4px 9px; border-radius: var(--r-pill); border: var(--stroke) solid var(--line-strong); background: var(--surface-2); font-weight: 700; font-size: var(--fs-sm); }
+.fi-ings .ico { color: var(--brand); flex: none; }
+.fi-prices { list-style: none; margin: 0; padding: 0; border: var(--stroke) solid var(--line-strong); border-radius: var(--r-md); overflow: hidden; }
+.fi-prices li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 14px; }
+.fi-prices li + li { border-top: 1px solid var(--line); }
+.fi-size { font-size: 1.5rem; line-height: 1; color: var(--brand); }
+.fi-size-name { display: grid; font-weight: 700; line-height: 1.25; }
+.fi-size-name small { font-weight: 500; color: var(--ink-3); font-size: var(--fs-xs); }
+.fi-prices strong { font-weight: 800; }
+.fi-note { font-size: var(--fs-xs); color: var(--ink-3); }
+.fi-foot { padding: 12px 20px 16px; border-top: 1px solid var(--line); flex: none; }
 .legal-body { overflow-y: auto; padding: 4px 20px 24px; display: grid; gap: 16px; overscroll-behavior: contain; }
 .legal-body section h3 { font-size: var(--fs-md); font-weight: 800; margin-bottom: 4px; }
 .legal-body section p { color: var(--ink-2); max-width: 65ch; }
@@ -619,9 +651,9 @@ body:has(.cart-bar:not([hidden])) .consent { bottom: calc(84px + env(safe-area-i
   .picker { left: 50%; right: auto; bottom: auto; top: 50%; width: min(600px, calc(100% - 48px)); height: min(760px, 86dvh); border-radius: var(--r-xl); transform: translate(-50%, -46%) scale(.98); opacity: 0; transition: transform var(--t-slow) var(--ease), opacity var(--t-base); }
   .overlay.is-open .picker { transform: translate(-50%, -50%); opacity: 1; }
   .picker .sheet-grip { visibility: hidden; height: 0; margin: 6px; }
-  .legal-sheet, .demo-sheet { left: 50%; right: auto; bottom: auto; top: 50%; width: min(620px, calc(100% - 48px)); border-radius: var(--r-xl); transform: translate(-50%, -46%); opacity: 0; transition: transform var(--t-slow) var(--ease), opacity var(--t-base); }
-  .overlay.is-open .legal-sheet, .overlay.is-open .demo-sheet { transform: translate(-50%, -50%); opacity: 1; }
-  .legal-sheet .sheet-grip, .demo-sheet .sheet-grip { visibility: hidden; height: 0; margin: 8px; }
+  .legal-sheet, .demo-sheet, .fi-sheet { left: 50%; right: auto; bottom: auto; top: 50%; width: min(620px, calc(100% - 48px)); border-radius: var(--r-xl); transform: translate(-50%, -46%); opacity: 0; transition: transform var(--t-slow) var(--ease), opacity var(--t-base); }
+  .overlay.is-open .legal-sheet, .overlay.is-open .demo-sheet, .overlay.is-open .fi-sheet { transform: translate(-50%, -50%); opacity: 1; }
+  .legal-sheet .sheet-grip, .demo-sheet .sheet-grip, .fi-sheet .sheet-grip { visibility: hidden; height: 0; margin: 8px; }
   .co-step-num { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-sm); background: var(--surface-3); color: var(--ink-3); }
   .co-step-num .ico { display: block; }
   .co-step.is-done .co-step-num { background: var(--ok); color: #fff; }
