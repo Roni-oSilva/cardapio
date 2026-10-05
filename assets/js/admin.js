@@ -54,7 +54,6 @@
     user: { name: 'Marina Costa', email: 'marina@fornalha.com.br' },
     view: (location.hash || '').replace('#', '') || 'dashboard',
     attempts: 0, lockedUntil: 0, loginEmail: '',
-    period: 'week',
     ordersTab: 'novo', orderFilter: 'todos', orderQuery: '',
     productsTab: 'pizzas',
     flavorQuery: '', flavorTier: 'all',
@@ -237,178 +236,58 @@
     const last = pts[pts.length - 1];
     return `<svg class="spark ${up ? 'is-up' : 'is-down'}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><path d="${d} L${w} ${h} L0 ${h}Z" class="spark-area"/><path d="${d}" class="spark-line"/><circle cx="${last[0]}" cy="${last[1]}" r="3" class="spark-dot"/></svg>`;
   }
-  /** Indicadores reais a partir dos pedidos dos últimos 30 dias (modo real). */
-  function computeStats() {
+  /** Pedidos de hoje e dos 6 dias anteriores (modo real). */
+  function ordersKpi() {
+    if (!REAL) return Object.assign({ compare: 'vs. terça passada' }, F.DEMO_STATS.kpis[0]);
     const valid = state.orders.filter(o => o.status !== 'cancelado');
     const dayKey = d => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-    const days = n => Array.from({ length: n }, (_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (n - 1 - i)); return d; });
-    const byDay = {};
-    valid.forEach(o => { const k = dayKey(new Date(o.createdAt)); (byDay[k] = byDay[k] || []).push(o); });
-    const dayStats = d => {
-      const list = byDay[dayKey(d)] || [];
-      const revenue = list.reduce((n, o) => n + o.total, 0);
-      const items = list.reduce((n, o) => n + (o.lines || []).reduce((m, l) => m + (l.qty || 0), 0), 0);
-      return { orders: list.length, revenue, ticket: list.length ? revenue / list.length : 0, items };
-    };
-    const week = days(7), month = days(30);
-    const today = dayStats(week[6]);
-    const lastWeek = (() => { const d = new Date(week[6]); d.setDate(d.getDate() - 7); return dayStats(d); })();
-    const delta = (a, b) => (b ? Math.round(((a - b) / b) * 1000) / 10 : 0);
-    const WD = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    const todays = byDay[dayKey(week[6])] || [];
-    const hours = todays.map(o => new Date(o.createdAt).getHours());
-    const h0 = Math.min(17, ...hours), h1 = Math.max(23, ...hours);
-    const byHour = Array.from({ length: h1 - h0 + 1 }, (_, i) => ({ label: `${h0 + i}h`, value: hours.filter(h => h === h0 + i).length }));
-    const counts = {};
-    todays.forEach(o => (o.lines || []).forEach(l => {
-      const p = l.productId && CAT.products.find(x => x.id === l.productId);
-      const label = l.type === 'pizza' ? (p ? p.name : `Pizza ${l.sizeId}`) : (p ? p.name : 'Item');
-      counts[label] = (counts[label] || 0) + (l.qty || 0);
-    }));
-    return {
-      kpis: [
-        { id: 'orders', label: 'Pedidos hoje', value: today.orders, format: 'int', delta: delta(today.orders, lastWeek.orders), spark: week.map(d => dayStats(d).orders) },
-        { id: 'revenue', label: 'Faturamento', value: today.revenue, format: 'brl', delta: delta(today.revenue, lastWeek.revenue), spark: week.map(d => dayStats(d).revenue) },
-        { id: 'ticket', label: 'Ticket médio', value: today.ticket, format: 'brl', delta: delta(today.ticket, lastWeek.ticket), spark: week.map(d => dayStats(d).ticket) },
-        { id: 'items', label: 'Produtos vendidos', value: today.items, format: 'int', delta: delta(today.items, lastWeek.items), spark: week.map(d => dayStats(d).items) }
-      ],
-      salesWeek: week.map((d, i) => ({ label: i === 6 ? 'Hoje' : WD[d.getDay()], value: dayStats(d).revenue })),
-      salesMonth: month.map(d => ({ label: String(d.getDate()), value: dayStats(d).revenue })),
-      byHour,
-      topProducts: Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([label, value]) => ({ label, value })),
-      compare: `vs. ${WD[week[6].getDay()].toLowerCase()} passada`
-    };
+    const count = {};
+    valid.forEach(o => { const k = dayKey(new Date(o.createdAt)); count[k] = (count[k] || 0) + 1; });
+    const days = Array.from({ length: 8 }, (_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (7 - i)); return d; });
+    const per = days.map(d => count[dayKey(d)] || 0);
+    const today = per[7], lastWeek = per[0];
+    const WD = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+    const wd = WD[days[7].getDay()];
+    return { value: today, delta: lastWeek ? Math.round(((today - lastWeek) / lastWeek) * 1000) / 10 : 0, spark: per.slice(1), compare: `vs. ${wd} passad${wd === 'sábado' || wd === 'domingo' ? 'o' : 'a'}` };
   }
-  const stats = () => (REAL ? computeStats() : Object.assign({ compare: 'vs. terça passada' }, F.DEMO_STATS));
 
   function dashboardHtml() {
-    const S = stats();
     const hour = new Date().getHours();
     const greet = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
-    const orders = allOrders();
-    const live = orders.filter(o => o.status !== 'finalizado').slice(0, 5);
-    const flavors = [...CAT.flavors].sort((a, b) => b.sold - a.sold).slice(0, 6);
-    const peak = S.byHour.reduce((a, h) => (h.value > a.value ? h : a), { value: 0 });
+    const k = ordersKpi(), up = k.delta >= 0;
+    const live = allOrders().filter(o => o.status !== 'finalizado');
     return `${pageHead(`${greet}, ${esc(state.user.name.split(' ')[0])}`, `Resumo de hoje, ${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}`, `<a class="btn btn-secondary btn-sm" href="#pedidos" data-act="nav" data-view="pedidos">${icon('orders', 16)}Ver pedidos</a>`)}
-      <section class="kpis" aria-label="Indicadores de hoje">${S.kpis.map(k => {
-        const up = k.delta >= 0;
-        return `<article class="kpi">
-          <p class="kpi-label">${k.label}</p>
-          <p class="kpi-value display tabular">${k.format === 'brl' ? brl(k.value) : int(k.value)}</p>
-          <div class="kpi-foot"><span class="delta ${up ? 'is-up' : 'is-down'}">${icon(up ? 'arrowUp' : 'arrowDown', 13)}${Math.abs(k.delta).toLocaleString('pt-BR')}%</span><span class="kpi-cmp">${esc(S.compare)}</span></div>
-          ${sparkline(k.spark, up)}
-        </article>`;
-      }).join('')}</section>
-      <section class="charts">
-        <article class="card chart-card chart-wide">
-          <div class="card-head"><div><h3 class="card-title">Vendas por período</h3><p class="card-sub" id="salesSub">${state.period === 'week' ? 'Últimos 7 dias' : 'Últimos 30 dias'} · faturamento em R$</p></div>
-            <div class="seg" role="group" aria-label="Período"><button type="button" data-act="period" data-v="week" aria-pressed="${state.period === 'week'}">7 dias</button><button type="button" data-act="period" data-v="month" aria-pressed="${state.period === 'month'}">30 dias</button></div></div>
-          <div class="chart" id="chartSales" data-chart="area"></div>
-        </article>
-        <article class="card chart-card">
-          <div class="card-head"><div><h3 class="card-title">Pedidos por horário</h3><p class="card-sub">${peak.value ? `Hoje · pico às ${peak.label}` : 'Hoje · nenhum pedido ainda'}</p></div></div>
-          <div class="chart" id="chartHours" data-chart="bars"></div>
-        </article>
-        <article class="card chart-card">
-          <div class="card-head"><div><h3 class="card-title">Produtos mais vendidos</h3><p class="card-sub">Hoje · unidades</p></div></div>
-          ${S.topProducts.length ? hbars(S.topProducts.map(p => ({ label: p.label, value: p.value }))) : '<p class="muted">Nenhuma venda hoje ainda.</p>'}
-        </article>
-        <article class="card chart-card">
-          <div class="card-head"><div><h3 class="card-title">Sabores mais escolhidos</h3><p class="card-sub">${REAL ? 'Desde o início · pizzas vendidas com o sabor' : 'Últimos 30 dias · fatias em pizzas vendidas'}</p></div></div>
-          ${hbars(flavors.map(f => ({ label: f.name, value: f.sold, thumb: Pz.mini([f], 1) })))}
-        </article>
+      <section class="dash">
+          <article class="kpi">
+            <p class="kpi-label">Pedidos hoje</p>
+            <p class="kpi-value display tabular">${int(k.value)}</p>
+            <div class="kpi-foot"><span class="delta ${up ? 'is-up' : 'is-down'}">${icon(up ? 'arrowUp' : 'arrowDown', 13)}${Math.abs(k.delta).toLocaleString('pt-BR')}%</span><span class="kpi-cmp">${esc(k.compare)}</span></div>
+            ${sparkline(k.spark, up)}
+          </article>
         <article class="card live-card">
           <div class="card-head"><div><h3 class="card-title">Agora na cozinha</h3><p class="card-sub">${U.plural(live.length, 'pedido em andamento', 'pedidos em andamento')}</p></div><a class="link-btn" href="#pedidos" data-act="nav" data-view="pedidos">Abrir quadro</a></div>
-          <ul class="live-list">${live.map(o => { const st = STATUS.find(s => s.id === o.status); return `<li><button type="button" class="live-item" data-act="order" data-n="${o.number}"><span class="live-num tabular">#${o.number}</span><span class="live-name">${esc(o.customer)}</span><span class="pill pill-${st.tone}">${st.label}</span><span class="live-total tabular">${brl(o.total)}</span></button></li>`; }).join('')}</ul>
+          ${live.length
+            ? `<ul class="live-list">${live.map(o => { const st = STATUS.find(s => s.id === o.status); return `<li><button type="button" class="live-item ${o.status === 'novo' ? 'is-new' : ''}" data-act="order" data-n="${o.number}"><span class="live-num tabular">#${o.number}</span><span class="live-name">${esc(o.customer)}</span><span class="pill pill-${st.tone}">${st.label}</span><span class="live-total tabular">${brl(o.total)}</span></button></li>`; }).join('')}</ul>`
+            : `<p class="live-empty">${icon('check', 18)}Nenhum pedido em andamento. Quando chegar um, o alarme toca.</p>`}
         </article>
+        ${alarmCardHtml()}
       </section>`;
   }
-  function hbars(rows) {
-    const max = Math.max(1, ...rows.map(r => r.value));
-    return `<ol class="hbars">${rows.map((r, i) => `<li class="hbar" title="${esc(r.label)}: ${int(r.value)}">
-      ${r.thumb ? `<span class="hbar-thumb" aria-hidden="true">${r.thumb}</span>` : `<span class="hbar-rank tabular">${i + 1}</span>`}
-      <span class="hbar-label">${esc(r.label)}</span>
-      <span class="hbar-track" aria-hidden="true"><span class="hbar-fill" style="width:${(r.value / max) * 100}%"></span></span>
-      <span class="hbar-value tabular">${int(r.value)}</span>
-    </li>`).join('')}</ol>`;
-  }
-
-  /* ---------- gráficos SVG (medidos no container) ---------- */
-  function niceMax(v) { if (!(v > 0)) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); const n = v / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
-  function drawArea(el, data, fmt) {
-    const W = el.clientWidth || 600, H = 240, L = 56, R = 16, T = 16, B = 30;
-    const max = niceMax(Math.max(...data.map(d => d.value)) * 1.08);
-    const x = i => L + (i / (data.length - 1)) * (W - L - R), y = v => T + (1 - v / max) * (H - T - B);
-    const ticks = [0, .25, .5, .75, 1].map(t => t * max);
-    const step = Math.max(1, Math.ceil(data.length / Math.floor((W - L - R) / 56)));
-    const line = data.map((d, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(d.value).toFixed(1)}`).join(' ');
-    const last = data.length - 1;
-    el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Faturamento por dia">
-      <defs><linearGradient id="gArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--brand)" stop-opacity=".22"/><stop offset="1" stop-color="var(--brand)" stop-opacity="0"/></linearGradient></defs>
-      ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" class="grid"/><text x="${L - 8}" y="${y(t) + 4}" class="axis" text-anchor="end">${fmt(t)}</text>`).join('')}
-      ${data.map((d, i) => (i % step === 0 || i === last) && !(i !== last && last - i < step) ? `<text x="${x(i)}" y="${H - 8}" class="axis" text-anchor="middle">${esc(d.label)}</text>` : '').join('')}
-      <path d="${line} L${x(last)} ${y(0)} L${x(0)} ${y(0)}Z" fill="url(#gArea)"/>
-      <path d="${line}" class="line"/>
-      <circle cx="${x(last)}" cy="${y(data[last].value)}" r="5" class="end-dot"/>
-      <text x="${x(last) - 8}" y="${y(data[last].value) - 12}" class="end-label" text-anchor="end">${brl(data[last].value)}</text>
-      <g class="hover" visibility="hidden"><line class="cross" y1="${T}" y2="${H - B}"/><circle r="5" class="hover-dot"/></g>
-      <rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent" class="hit"/>
-    </svg><div class="tip" hidden></div>`;
-    const svg = el.querySelector('svg'), hov = svg.querySelector('.hover'), tip = el.querySelector('.tip');
-    const move = ev => {
-      const r = svg.getBoundingClientRect();
-      const px = ev.clientX - r.left;
-      const i = Math.max(0, Math.min(last, Math.round((px - L) / (W - L - R) * last)));
-      hov.setAttribute('visibility', 'visible');
-      hov.querySelector('.cross').setAttribute('x1', x(i)); hov.querySelector('.cross').setAttribute('x2', x(i));
-      hov.querySelector('.hover-dot').setAttribute('cx', x(i)); hov.querySelector('.hover-dot').setAttribute('cy', y(data[i].value));
-      tip.hidden = false;
-      tip.innerHTML = `<span>${state.period === 'week' ? esc(data[i].label) : 'Dia ' + esc(data[i].label)}</span><strong class="tabular">${brl(data[i].value)}</strong>`;
-      const tx = Math.min(W - tip.offsetWidth - 4, Math.max(4, x(i) - tip.offsetWidth / 2));
-      tip.style.transform = `translate(${tx}px, ${Math.max(0, y(data[i].value) - 58)}px)`;
-    };
-    const hit = svg.querySelector('.hit');
-    hit.addEventListener('pointermove', move);
-    hit.addEventListener('pointerdown', move);
-    hit.addEventListener('pointerleave', () => { hov.setAttribute('visibility', 'hidden'); tip.hidden = true; });
-  }
-  function drawBars(el, data) {
-    const W = el.clientWidth || 400, H = 220, L = 32, R = 8, T = 22, B = 28;
-    const max = niceMax(Math.max(...data.map(d => d.value)) * 1.1);
-    const bw = (W - L - R) / data.length, gap = Math.max(2, bw * 0.28);
-    const y = v => T + (1 - v / max) * (H - T - B);
-    const peak = data.reduce((a, d, i) => (d.value > data[a].value ? i : a), 0);
-    const ticks = [0, .5, 1].map(t => t * max);
-    el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Pedidos por horário">
-      ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" class="grid"/><text x="${L - 6}" y="${y(t) + 4}" class="axis" text-anchor="end">${int(t)}</text>`).join('')}
-      ${data.map((d, i) => {
-        const x0 = L + i * bw + gap / 2, w = bw - gap, h = y(0) - y(d.value), r = Math.min(4, w / 2);
-        return `<g class="bar-g" data-i="${i}"><rect x="${L + i * bw}" y="${T}" width="${bw}" height="${H - T - B}" fill="transparent"/>
-          <path d="M${x0} ${y(0)} V${y(d.value) + r} Q${x0} ${y(d.value)} ${x0 + r} ${y(d.value)} H${x0 + w - r} Q${x0 + w} ${y(d.value)} ${x0 + w} ${y(d.value) + r} V${y(0)}Z" class="bar ${i === peak ? 'is-peak' : ''}" ${h <= 0 ? 'visibility="hidden"' : ''}/>
-          <text x="${x0 + w / 2}" y="${H - 8}" class="axis" text-anchor="middle">${esc(d.label)}</text>
-          ${i === peak ? `<text x="${x0 + w / 2}" y="${y(d.value) - 6}" class="end-label" text-anchor="middle">${d.value}</text>` : ''}</g>`;
-      }).join('')}
-    </svg><div class="tip" hidden></div>`;
-    const tip = el.querySelector('.tip');
-    $$('.bar-g', el).forEach(g => {
-      const show = () => { const d = data[+g.dataset.i]; $$('.bar', el).forEach(b => b.classList.toggle('is-dim', b !== g.querySelector('.bar'))); tip.hidden = false; tip.innerHTML = `<span>${esc(d.label)}</span><strong class="tabular">${U.plural(d.value, 'pedido', 'pedidos')}</strong>`; const i = +g.dataset.i; const tx = Math.min(W - tip.offsetWidth - 4, Math.max(4, L + i * bw + bw / 2 - tip.offsetWidth / 2)); tip.style.transform = `translate(${tx}px, ${Math.max(0, y(d.value) - 56)}px)`; };
-      g.addEventListener('pointerenter', show); g.addEventListener('pointerdown', show);
-      g.addEventListener('pointerleave', () => { tip.hidden = true; $$('.bar', el).forEach(b => b.classList.remove('is-dim')); });
-    });
-  }
-  let ro = null;
-  function mountCharts() {
-    const sales = $('#chartSales'), hours = $('#chartHours');
-    if (!sales) return;
-    const draw = () => {
-      const S = stats();
-      const data = state.period === 'week' ? S.salesWeek : S.salesMonth;
-      drawArea(sales, data, v => v >= 1000 ? (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' : int(v));
-      drawBars(hours, S.byHour);
-    };
-    draw();
-    if (ro) ro.disconnect();
-    if ('ResizeObserver' in window) { let w = sales.clientWidth; ro = new ResizeObserver(() => { if (Math.abs(sales.clientWidth - w) > 4) { w = sales.clientWidth; draw(); } }); ro.observe(sales); }
+  function alarmCardHtml() {
+    const st = Alarm.status();
+    const label = { ok: 'Ligado e pronto para tocar', blocked: 'Som bloqueado pelo navegador', off: 'Desligado', unsupported: 'Este navegador não toca som' }[st];
+    const notif = 'Notification' in window ? Notification.permission : 'unsupported';
+    return `<article class="card alarm-card" id="alarmCard">
+      <div class="card-head"><div><h3 class="card-title">Alarme de pedidos</h3><p class="card-sub">Toca sem parar até alguém aceitar o pedido</p></div>
+        <button type="button" class="alarm-switch" role="switch" aria-checked="${Alarm.enabled}" data-act="alarm-toggle" aria-label="Alarme de novos pedidos"><span class="switch-track ${Alarm.enabled ? 'is-on' : ''}" aria-hidden="true"></span></button></div>
+      <p class="alarm-status is-${st}">${icon(st === 'ok' ? 'bell' : 'alert', 16)}${label}</p>
+      <div class="alarm-actions">
+        ${st === 'blocked' ? `<button type="button" class="btn btn-primary btn-sm" data-act="alarm-unlock">${icon('bell', 16)}Ativar som</button>` : ''}
+        ${Alarm.enabled && st !== 'unsupported' ? `<button type="button" class="btn btn-secondary btn-sm" data-act="alarm-test">Testar alarme</button>` : ''}
+        ${notif === 'default' ? `<button type="button" class="btn btn-secondary btn-sm" data-act="alarm-notify">Avisar fora da página</button>` : ''}
+      </div>
+      <p class="alarm-help">Deixe o painel aberto no computador ou tablet do balcão, com o volume alto.${notif === 'granted' ? ' Avisos fora da página: ligados.' : notif === 'denied' ? ' Avisos fora da página estão bloqueados no navegador.' : ''}</p>
+    </article>`;
   }
 
   /* =========================================================
@@ -739,7 +618,6 @@
     const root = $('#root');
     if (state.auth !== 'app') { root.innerHTML = authHtml(); document.title = 'Fornalha Painel · Entrar'; const first = root.querySelector('#lgPass:not([disabled]), #recEmail, .otp-cell'); if (first) setTimeout(() => first.focus(), 30); return; }
     root.innerHTML = shellHtml();
-    if (state.view === 'dashboard') mountCharts();
     setupDnD();
   }
   function renderContent() {
@@ -753,13 +631,13 @@
     $$('.nav-item, .bn-item[data-view]').forEach(a => { const on = a.dataset.view === state.view; a.classList.toggle('is-active', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     $('.top-title').textContent = NAV.flatMap(g => g.items).find(i => i.id === state.view).label;
     updateNavBadge();
-    if (state.view === 'dashboard') mountCharts();
     setupDnD();
   }
   function updateNavBadge() {
     const n = allOrders().filter(o => o.status === 'novo').length;
     $$('.nav-item[data-view="pedidos"], .bn-item[data-view="pedidos"]').forEach(a => { let b = a.querySelector('.nav-badge'); if (n) { if (!b) { b = document.createElement('span'); b.className = 'nav-badge'; a.appendChild(b); } b.textContent = n; } else if (b) b.remove(); });
     document.title = n ? `(${n}) Fornalha Painel` : 'Fornalha Painel';
+    Alarm.check();
   }
   function go(view) {
     if (REAL && view === 'seguranca' && can('seguranca')) Backend.listStaff().then(list => { state.staffList = list; if (state.view === 'seguranca') renderContent(); }).catch(err => U.toast(esc(err.message), { type: 'error' }));
@@ -1025,7 +903,7 @@
       case 'relogin': U.closeOverlay($('#expired')); clearSession(); state.auth = 'login'; state.loginError = false; render(); break;
       case 'logout':
         U.confirmDialog({ title: 'Sair do painel?', body: REAL ? 'Você vai precisar do e-mail e da senha para entrar de novo.' : 'Você vai precisar da senha e do código para entrar de novo.', confirmLabel: 'Sair', icon: 'logout' })
-          .then(async ok => { if (!ok) return; clearSession(); state.auth = 'login'; await Backend.signOut(); render(); });
+          .then(async ok => { if (!ok) return; clearSession(); state.auth = 'login'; await Backend.signOut(); render(); Alarm.check(); });
         break;
       case 'change-pass': {
         $('#userMenu').hidden = true;
@@ -1044,9 +922,13 @@
         busy(el, async () => { await Backend.updatePassword(p1); closePanel(); U.toast('Senha alterada'); });
         break;
       }
-      case 'period': state.period = el.dataset.v; $$('[data-act="period"]').forEach(b => b.setAttribute('aria-pressed', b === el)); $('#salesSub').textContent = `${state.period === 'week' ? 'Últimos 7 dias' : 'Últimos 30 dias'} · faturamento em R$`; mountCharts(); break;
       // pedidos
       case 'order': orderDetail(+el.dataset.n); break;
+      case 'alarm-silence': Alarm.silence(); break;
+      case 'alarm-toggle': Alarm.toggle(); break;
+      case 'alarm-test': Alarm.test(); break;
+      case 'alarm-unlock': Alarm.unlock(); break;
+      case 'alarm-notify': Notification.requestPermission().then(() => Alarm.check()); break;
       case 'advance': {
         const n = +el.dataset.n, o = allOrders().find(x => x.number === n), st = STATUS.find(s => s.id === o.status);
         if (el.hasAttribute('data-close-after')) closePanel();
@@ -1291,18 +1173,127 @@
     }, 30000);
   }
 
-  function ding() {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      [0, 0.18].forEach((t, i) => {
+  /* ---------- Alarme de novos pedidos ----------
+     Toca enquanto houver pedido em "Novos" que ninguém aceitou nem silenciou.
+     Os bipes são agendados no relógio de áudio (não param com a aba em segundo plano). */
+  const Alarm = (() => {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    let enabled = true;
+    try { enabled = localStorage.getItem('fornalha:alarm') !== 'off'; } catch (e) { /* ignore */ }
+    let acked = new Set();
+    try { acked = new Set(JSON.parse(sessionStorage.getItem('fornalha:alarmAck') || '[]')); } catch (e) { /* ignore */ }
+    let ctx = null, master = null, ringUntil = 0, flash = null, wake = null;
+    const audio = () => { if (!ctx && AC) ctx = new AC(); return ctx; };
+    const ready = () => !!ctx && ctx.state === 'running';
+    function tone(dest, at) {
+      [[0, 988], [0.2, 1319], [0.4, 988], [0.6, 1319]].forEach(([dt, f]) => {
         const o = ctx.createOscillator(), g = ctx.createGain();
-        o.frequency.value = i ? 1175 : 880; o.connect(g); g.connect(ctx.destination);
-        g.gain.setValueAtTime(0.0001, ctx.currentTime + t);
-        g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + 0.35);
-        o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.4);
+        o.type = 'square'; o.frequency.value = f; o.connect(g); g.connect(dest);
+        g.gain.setValueAtTime(0.0001, at + dt);
+        g.gain.exponentialRampToValueAtTime(0.18, at + dt + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + dt + 0.18);
+        o.start(at + dt); o.stop(at + dt + 0.2);
       });
-    } catch (e) { /* sem áudio */ }
+    }
+    function startRing() {
+      if (!ready() || (master && ctx.currentTime < ringUntil - 30)) return;
+      stopRing(true);
+      master = ctx.createGain(); master.connect(ctx.destination);
+      const t0 = ctx.currentTime + 0.05;
+      for (let i = 0; i < 120; i++) tone(master, t0 + i * 2.5); // 5 minutos à frente; renovado enquanto tocar
+      ringUntil = t0 + 120 * 2.5;
+      if (navigator.vibrate) try { navigator.vibrate([400, 200, 400, 200, 400]); } catch (e) { /* ignore */ }
+    }
+    function stopRing(keepFlash) {
+      if (master) { try { master.disconnect(); } catch (e) { /* ignore */ } master = null; }
+      if (!keepFlash && flash) { clearInterval(flash); flash = null; const n = allOrders().filter(o => o.status === 'novo').length; document.title = n ? `(${n}) Fornalha Painel` : 'Fornalha Painel'; }
+    }
+    const recent = o => !o.createdAt || Date.now() - new Date(o.createdAt) < 12 * 3600e3;
+    const pending = () => (state.auth === 'app' ? allOrders().filter(o => o.status === 'novo' && !acked.has(o.number) && recent(o)) : []);
+    function status() { return !AC ? 'unsupported' : !enabled ? 'off' : ready() ? 'ok' : 'blocked'; }
+    function bar() {
+      let el = document.getElementById('alarmBar');
+      if (!el) { el = document.createElement('div'); el.id = 'alarmBar'; el.className = 'alarm-bar'; el.setAttribute('role', 'alert'); el.hidden = true; document.body.appendChild(el); }
+      return el;
+    }
+    function check() {
+      const list = enabled ? pending() : [];
+      const el = bar();
+      if (list.length) {
+        const o = list[list.length - 1];
+        el.className = 'alarm-bar is-ringing';
+        el.innerHTML = `<span class="alarm-bell">${icon('bell', 22)}</span>
+          <span class="alarm-text"><strong>${list.length > 1 ? `${list.length} novos pedidos` : `Novo pedido #${o.number}`}</strong><span>${esc(o.customer)} · ${brl(o.total)}${list.length > 1 ? ` · e mais ${list.length - 1}` : ''}${ready() ? '' : ' · toque em qualquer lugar para ligar o som'}</span></span>
+          <span class="alarm-btns"><button type="button" class="btn btn-cream btn-sm" data-act="order" data-n="${o.number}">Ver pedido</button><button type="button" class="btn btn-outline-cream btn-sm" data-act="alarm-silence">Silenciar</button></span>`;
+        el.hidden = false;
+        startRing();
+        if (!flash) { let on = false; flash = setInterval(() => { on = !on; document.title = on ? '🔔 NOVO PEDIDO!' : `(${list.length}) Fornalha Painel`; }, 1000); }
+      } else if (state.auth === 'app' && enabled && AC && !ready()) {
+        el.className = 'alarm-bar is-blocked';
+        el.innerHTML = `<span class="alarm-bell">${icon('bell', 20)}</span><span class="alarm-text"><strong>Alarme sem som</strong><span>O navegador só libera o som depois de um toque na página.</span></span><span class="alarm-btns"><button type="button" class="btn btn-primary btn-sm" data-act="alarm-unlock">Ativar som</button></span>`;
+        el.hidden = false;
+        stopRing();
+      } else {
+        el.hidden = true;
+        stopRing();
+      }
+      const card = document.getElementById('alarmCard');
+      if (card && state.view === 'dashboard') card.outerHTML = alarmCardHtml();
+    }
+    function unlock() {
+      const c = audio();
+      if (c && c.state !== 'running') c.resume().then(check, () => {});
+      else if (c) setTimeout(check, 0);
+      keepAwake();
+    }
+    async function keepAwake() {
+      if (!enabled || wake || !('wakeLock' in navigator) || document.visibilityState !== 'visible' || state.auth !== 'app') return;
+      try { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); } catch (e) { /* ignore */ }
+    }
+    function notify(o) {
+      if (!enabled || !('Notification' in window) || Notification.permission !== 'granted' || !document.hidden) return;
+      try { const n = new Notification(`Novo pedido #${o.number}`, { body: `${o.customer} · ${brl(o.total)}`, tag: 'pedido-' + o.number, requireInteraction: true }); n.onclick = () => { window.focus(); n.close(); }; } catch (e) { /* celular sem suporte */ }
+    }
+    function silence() {
+      pending().forEach(o => acked.add(o.number));
+      try { sessionStorage.setItem('fornalha:alarmAck', JSON.stringify([...acked].slice(-200))); } catch (e) { /* ignore */ }
+      check();
+    }
+    function test() {
+      unlock();
+      const c = audio();
+      if (!c) return;
+      const play = () => { const g = c.createGain(); g.connect(c.destination); tone(g, c.currentTime + 0.05); };
+      if (c.state === 'running') play(); else c.resume().then(play, () => {});
+    }
+    function toggle() {
+      enabled = !enabled;
+      try { localStorage.setItem('fornalha:alarm', enabled ? 'on' : 'off'); } catch (e) { /* ignore */ }
+      if (enabled) unlock(); else if (wake) { wake.release().catch(() => {}); wake = null; }
+      check();
+    }
+    ['pointerdown', 'keydown', 'touchend'].forEach(ev => document.addEventListener(ev, () => { if (enabled && !ready()) unlock(); }, { passive: true, capture: true }));
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
+    setInterval(check, 5000);
+    return { check, notify, silence, test, toggle, unlock, status, get enabled() { return enabled; } };
+  })();
+
+  /* ---------- Atualização dos pedidos: tempo real + conferência periódica ---------- */
+  let knownOrders = null;
+  function ordersChanged() {
+    const list = allOrders();
+    const fresh = knownOrders ? list.filter(o => !knownOrders.has(o.number) && o.status === 'novo') : [];
+    knownOrders = new Set(list.map(o => o.number));
+    fresh.forEach(o => { U.toast(`Novo pedido #${o.number} recebido`, { type: 'info' }); Alarm.notify(o); });
+    if (['dashboard', 'pedidos'].includes(state.view) && !$('.overlay.is-open')) renderContent(); else updateNavBadge();
+    Alarm.check();
+  }
+  let refreshing = false;
+  async function refreshOrders() {
+    if (!REAL || refreshing || state.auth !== 'app') return;
+    refreshing = true;
+    try { await loadOrders(); ordersChanged(); } catch (e) { /* tenta de novo na próxima volta */ }
+    refreshing = false;
   }
   let liveOff = null;
   function startLive() {
@@ -1315,9 +1306,16 @@
       } else if (REAL) {
         try { await loadOrders(); } catch (e) { return; }
       }
-      if (ev.eventType === 'INSERT') { U.toast(`Novo pedido${ev.order ? ' #' + ev.order.number : ''} recebido`, { type: 'info' }); ding(); }
-      if (['dashboard', 'pedidos'].includes(state.view) && !$('.overlay.is-open')) renderContent(); else updateNavBadge();
+      ordersChanged();
     });
+    knownOrders = new Set(allOrders().map(o => o.number));
+    if (REAL) {
+      // se a conexão em tempo real cair, a conferência a cada 20 s garante que nenhum pedido passe
+      setInterval(refreshOrders, 20000);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshOrders(); });
+      window.addEventListener('online', refreshOrders);
+    }
+    Alarm.check();
   }
 
   window.addEventListener('beforeunload', e => { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });

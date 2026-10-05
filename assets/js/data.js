@@ -172,26 +172,10 @@
     { number: 1018, customer: 'Patrícia Nunes', phone: '(11) 96666-3030', time: '19:26', total: 96.8, pay: 'Cartão', status: 'finalizado', mode: 'entrega', district: 'Lapa', items: ['Pizza GG · 3 sabores', '2x Coca-Cola lata'], note: '' }
   ];
 
+  // Indicador "Pedidos hoje" do modo demonstração
   const DEMO_STATS = {
     kpis: [
-      { id: 'orders', label: 'Pedidos hoje', value: 128, format: 'int', delta: 12.4, spark: [82, 94, 88, 101, 97, 113, 128] },
-      { id: 'revenue', label: 'Faturamento', value: 8420, format: 'brl', delta: 9.1, spark: [5210, 6100, 5870, 6900, 6420, 7710, 8420] },
-      { id: 'ticket', label: 'Ticket médio', value: 65.78, format: 'brl', delta: -2.3, spark: [67.1, 66.8, 67.4, 66.2, 66.9, 66.1, 65.78] },
-      { id: 'items', label: 'Produtos vendidos', value: 342, format: 'int', delta: 14.8, spark: [230, 251, 244, 276, 268, 301, 342] }
-    ],
-    salesWeek: [
-      { label: 'Ter', value: 5210 }, { label: 'Qua', value: 6100 }, { label: 'Qui', value: 5870 },
-      { label: 'Sex', value: 6900 }, { label: 'Sáb', value: 6420 }, { label: 'Dom', value: 7710 }, { label: 'Hoje', value: 8420 }
-    ],
-    salesMonth: [4210, 4480, 3990, 5120, 5870, 6320, 6010, 4380, 4650, 4120, 5210, 6100, 6840, 6230, 4510, 4730, 4290, 5480, 6250, 6980, 6410, 4620, 4890, 4410, 5210, 6100, 5870, 6900, 6420, 7710, 8420]
-      .map((v, i) => ({ label: String(i + 1), value: v })),
-    byHour: [
-      { label: '17h', value: 4 }, { label: '18h', value: 11 }, { label: '19h', value: 26 }, { label: '20h', value: 38 },
-      { label: '21h', value: 27 }, { label: '22h', value: 15 }, { label: '23h', value: 7 }
-    ],
-    topProducts: [
-      { label: 'Pizza G', value: 61 }, { label: 'Coca-Cola 2L', value: 44 }, { label: 'Pizza GG', value: 38 },
-      { label: 'Combo Família', value: 21 }, { label: 'Pizza M', value: 19 }, { label: 'Brownie com sorvete', value: 12 }
+      { id: 'orders', label: 'Pedidos hoje', value: 128, format: 'int', delta: 12.4, spark: [82, 94, 88, 101, 97, 113, 128] }
     ]
   };
 

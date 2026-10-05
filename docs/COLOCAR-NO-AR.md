@@ -85,7 +85,8 @@ No Supabase, **Authentication → URL Configuration**:
    - **Loja e marca**: nome, frase, cores e logo.
 3. Em **Produtos** e **Sabores**: ajuste preços, envie fotos e pause o que não tiver.
 4. Revise a **Política de privacidade** e os **Termos de uso** (texto em `assets/js/data.js`, no bloco `LEGAL`): coloque o nome da empresa, o e-mail do encarregado (DPO) e envie ao GitHub.
-5. Abra o cardápio (`https://seu-endereco.vercel.app`) em outro aparelho e faça um pedido de teste. Ele aparece em **Pedidos → Novos** no painel na hora, com aviso sonoro.
+5. Abra o cardápio (`https://seu-endereco.vercel.app`) em outro aparelho e faça um pedido de teste. Ele aparece em **Pedidos → Novos** no painel na hora e o **alarme** toca até alguém aceitar o pedido.
+6. No computador ou tablet do balcão: deixe o painel aberto, volume alto, e toque uma vez na página depois de abrir (o navegador só libera o som depois de um toque). No cartão **Alarme de pedidos** use **Testar alarme** e, se quiser, **Avisar fora da página**.
 
 ---
 
