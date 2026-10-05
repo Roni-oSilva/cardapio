@@ -123,6 +123,16 @@ No Supabase, **Authentication → URL Configuration**:
 | Link de recuperação de senha abre a página errada | Ajuste o passo 3.1 (Site URL e Redirect URLs). |
 | Pedidos não aparecem sozinhos no painel | Recarregue a página; confira em **Database → Publications** se `supabase_realtime` inclui a tabela `orders` (o `schema.sql` já faz isso). |
 
+## Atualizações do banco
+
+Quando o projeto ganhar campos novos, rode o arquivo de atualização correspondente no **SQL Editor** (uma vez só; não apaga nada):
+
+| Arquivo | O que faz |
+|---|---|
+| `supabase/atualizacao-detalhes-sabores.sql` | Acrescenta o **detalhe curto** e os **selos** (Vegetariana, Picante) dos sabores e preenche os sabores do cardápio inicial. |
+
+Quem instalou do zero com o `schema.sql` mais recente já tem tudo.
+
 ## Atualizar o cardápio inicial pelo código (opcional)
 O `supabase/seed.sql` é gerado a partir de `assets/js/data.js`:
 ```bash

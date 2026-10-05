@@ -120,6 +120,39 @@
     });
     return out.join('');
   }
+  function flavorTags(f, cls = '') {
+    const tags = (f.tags || []).filter(t => F.FLAVOR_TAGS[t]);
+    if (!tags.length) return '';
+    return `<ul class="ftags ${cls}" aria-label="Características">${tags.map(t => `<li class="ftag ftag-${t}">${icon(t === 'veg' ? 'leaf' : 'flame', 13)}${F.FLAVOR_TAGS[t]}</li>`).join('')}</ul>`;
+  }
+  // "Molho de tomate, mussarela, calabresa e orégano" → ['Molho de tomate', 'Mussarela', 'Calabresa', 'Orégano']
+  function ingredientList(text) {
+    return String(text || '').split(/,|\s+e\s+/).map(s => s.trim()).filter(Boolean).map(s => s.charAt(0).toUpperCase() + s.slice(1));
+  }
+  function openFlavorInfo(id) {
+    const f = I.flavor[id];
+    if (!f) return;
+    const sizes = CAT.sizes;
+    const el = $('#flavorInfo .fi-sheet');
+    const ings = ingredientList(f.ingredients);
+    el.innerHTML = `<div class="sheet-grip" aria-hidden="true"></div>
+      <header class="lg-head"><div><p class="eyebrow">${esc(F.TIER_LABEL[f.tier] || '')}</p><h2 class="display pk-title" id="flavorInfoTitle">${esc(f.name)}</h2></div><button type="button" class="icon-btn is-filled" data-close aria-label="Fechar">${icon('x')}</button></header>
+      <div class="fi-body">
+        <div class="fi-art ${f.available ? '' : 'is-off'}">${f.photo ? Pz.cardArt(f) : Pz.svg({ flavors: [f], divisions: 1, className: 'fi-pizza' })}<div class="pcard-badges">${badgesHtml({ available: f.available, badges: f.badges })}</div></div>
+        ${f.details ? `<p class="fi-details">${esc(f.details)}</p>` : ''}
+        ${flavorTags(f, 'ftags-lg')}
+        ${ings.length ? `<section class="fi-block" aria-labelledby="fiIng"><h3 class="fi-h" id="fiIng">O que vem na pizza</h3><ul class="fi-ings">${ings.map(i => `<li>${icon('check', 15)}${esc(i)}</li>`).join('')}</ul></section>` : ''}
+        <section class="fi-block" aria-labelledby="fiPrices"><h3 class="fi-h" id="fiPrices">Preço da pizza inteira</h3>
+          <ul class="fi-prices">${sizes.map(s => `<li><span class="fi-size display">${esc(s.id)}</span><span class="fi-size-name">${esc(s.name)}<small>${s.slices} fatias · até ${U.plural(s.maxFlavors, 'sabor', 'sabores')}</small></span><strong class="tabular">${brl(s.price + ((f.surcharge && f.surcharge[s.id]) || 0))}</strong></li>`).join('')}</ul>
+          <p class="fi-note">Pode dividir com outros sabores na montagem.</p>
+        </section>
+      </div>
+      <footer class="fi-foot">${f.available
+        ? `<button type="button" class="btn btn-primary btn-lg btn-block" data-act="fi-build" data-id="${f.id}">${icon('pizza', 18)}Montar com este sabor</button>`
+        : '<button type="button" class="btn btn-secondary btn-lg btn-block" disabled>Indisponível hoje</button>'}</footer>`;
+    U.openOverlay($('#flavorInfo'), { focus: '[data-close]' });
+    el.querySelector('.fi-body').scrollTop = 0;
+  }
   function productCard(item, variant = '') {
     const act = item.kind === 'simple' ? 'add-simple' : 'product';
     const inCart = item.kind === 'simple' ? state.cart.filter(c => c.productId === item.id && c.type === 'simple').reduce((n, c) => n + c.qty, 0) : 0;
@@ -129,7 +162,9 @@
       <div class="pcard-photo">${artFor(item)}<div class="pcard-badges">${badgesHtml(item)}</div>${inCart ? `<span class="pcard-incart" aria-label="${inCart} no carrinho">${inCart}</span>` : ''}</div>
       <div class="pcard-body">
         <h3 class="pcard-title">${esc(item.name)}</h3>
+        ${item.flavor ? flavorTags(item.flavor) : ''}
         <p class="pcard-desc">${esc(item.desc)}</p>
+        ${item.flavor ? `<button type="button" class="link-btn pcard-more" data-act="flavor-info" data-id="${item.id}" aria-label="Ver detalhes de ${esc(item.name)}">Ver detalhes${icon('right', 14)}</button>` : ''}
         <div class="pcard-foot">
           <div class="pcard-price">
             ${item.from ? '<span class="pcard-from">A partir de</span>' : ''}
@@ -211,7 +246,7 @@
       const nq = norm(q);
       const all = CAT.categories.flatMap(c => menuItems(c.id));
       const seen = new Set();
-      const res = all.filter(it => (norm(it.name).includes(nq) || norm(it.desc).includes(nq)) && !seen.has(it.id) && seen.add(it.id));
+      const res = all.filter(it => (norm(it.name).includes(nq) || norm(it.desc).includes(nq) || norm(it.flavor ? it.flavor.details || '' : '').includes(nq)) && !seen.has(it.id) && seen.add(it.id));
       body.innerHTML = res.length
         ? `<section class="menu-section"><div class="section-head"><h2 class="section-title display">Resultados</h2><p class="section-sub">${U.plural(res.length, 'item encontrado', 'itens encontrados')} para “${esc(state.search)}”</p></div><div class="pgrid">${res.map(i => productCard(i)).join('')}</div></section>`
         : `<div class="empty search-empty">
@@ -746,6 +781,7 @@
         <span class="pk-text">
           <span class="pk-name">${esc(f.name)}${f.badges.includes('bestseller') ? `<span class="badge badge-best">${icon('star', 12)}Mais pedido</span>` : ''}${f.badges.includes('new') ? '<span class="badge badge-new">Novidade</span>' : ''}</span>
           <span class="pk-ing">${esc(f.ingredients)}</span>
+          ${flavorTags(f, 'ftags-sm')}
           ${inSlices.length ? `<span class="pk-also">Já está no sabor ${inSlices.join(', ')}</span>` : ''}
         </span>
         <span class="pk-side">${!f.available ? '<span class="badge badge-off">Indisponível hoje</span>' : sel ? `<span class="pk-check">${icon('check', 18)}</span>` : `<span class="pk-price tabular">${sur ? '+ ' + brl(sur) : 'Incluso'}</span>`}</span>
@@ -1225,6 +1261,8 @@
     const el = e.target.closest('[data-act]');
     if (!el) {
       // clique no card inteiro (atalho para mouse/toque)
+      const flavorCard = e.target.closest('.pcard[data-card^="flavor:"]');
+      if (flavorCard) { openFlavorInfo(flavorCard.dataset.card.slice(7)); return; }
       const card = e.target.closest('.pcard:not(.is-off):not(.pcard-skel)');
       if (card) { const btn = card.querySelector('.pcard-add'); if (btn && !btn.disabled) btn.click(); }
       return;
@@ -1241,6 +1279,8 @@
         break;
       }
       case 'add-simple': addSimple(id, el); break;
+      case 'flavor-info': openFlavorInfo(id); break;
+      case 'fi-build': U.closeOverlay($('#flavorInfo')); openBuilder({ flavorId: id }); break;
       case 'qty': changeQty(id, +el.dataset.d); break;
       case 'edit-item': if (U.isOpen($('#cartDrawer'))) U.closeOverlay($('#cartDrawer')); openBuilder({ editId: id }); break;
       case 'checkout': if (el.getAttribute('aria-disabled') === 'true') { U.toast(checkoutBlockReason(), { type: !isOnline() ? 'offline' : 'error' }); break; } openCheckout(); break;

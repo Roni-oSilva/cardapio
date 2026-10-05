@@ -63,6 +63,8 @@ create table if not exists public.flavors (
   tier        text not null check (tier in ('tradicional', 'especial', 'doce')),
   recipe      text not null default 'mussarela',
   ingredients text not null default '' check (char_length(ingredients) <= 200),
+  details     text not null default '' check (char_length(details) <= 160),
+  tags        text[] not null default '{}' check (tags <@ array['veg', 'spicy']::text[]),
   surcharge   jsonb not null default '{"P": 0, "M": 0, "G": 0, "GG": 0}'::jsonb,
   badges      text[] not null default '{}',
   available   boolean not null default true,
@@ -70,6 +72,10 @@ create table if not exists public.flavors (
   sold        int not null default 0,
   position    int not null default 0
 );
+
+-- Instalações antigas: acrescenta os detalhes dos sabores sem apagar nada.
+alter table public.flavors add column if not exists details text not null default '' check (char_length(details) <= 160);
+alter table public.flavors add column if not exists tags text[] not null default '{}' check (tags <@ array['veg', 'spicy']::text[]);
 
 create table if not exists public.products (
   id            text primary key,

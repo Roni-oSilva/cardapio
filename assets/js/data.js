@@ -60,25 +60,28 @@
 
   // surcharge: adicional por tamanho, somado ao preço-base do tamanho
   const FLAVORS = [
-    { id: 'calabresa', name: 'Calabresa', tier: 'tradicional', recipe: 'calabresa', ingredients: 'Molho de tomate, mussarela, calabresa fatiada, cebola e orégano', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: ['bestseller'], available: true, sold: 412 },
-    { id: 'mussarela', name: 'Mussarela', tier: 'tradicional', recipe: 'mussarela', ingredients: 'Molho de tomate, mussarela, tomate, azeitona e orégano', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 305 },
-    { id: 'frango-catupiry', name: 'Frango com Catupiry', tier: 'tradicional', recipe: 'frango', ingredients: 'Molho de tomate, frango desfiado temperado, Catupiry original e orégano', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: ['bestseller'], available: true, sold: 388 },
-    { id: 'portuguesa', name: 'Portuguesa', tier: 'tradicional', recipe: 'portuguesa', ingredients: 'Mussarela, presunto, ovo, cebola, ervilha e azeitona', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 241 },
-    { id: 'quatro-queijos', name: 'Quatro Queijos', tier: 'tradicional', recipe: 'quatroQueijos', ingredients: 'Mussarela, provolone, parmesão e gorgonzola', surcharge: { P: 2, M: 3, G: 4, GG: 5 }, badges: [], available: true, sold: 226 },
-    { id: 'marguerita', name: 'Marguerita', tier: 'tradicional', recipe: 'marguerita', ingredients: 'Molho de tomate, mussarela de búfala, tomate e manjericão fresco', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 198 },
-    { id: 'bacon', name: 'Bacon', tier: 'tradicional', recipe: 'bacon', ingredients: 'Molho de tomate, mussarela, bacon crocante e orégano', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 187 },
-    { id: 'pepperoni', name: 'Pepperoni', tier: 'tradicional', recipe: 'pepperoni', ingredients: 'Molho de tomate, mussarela e pepperoni levemente picante', surcharge: { P: 2, M: 3, G: 4, GG: 5 }, badges: [], available: true, sold: 264 },
+    { id: 'calabresa', name: 'Calabresa', tier: 'tradicional', recipe: 'calabresa', ingredients: 'Molho de tomate, mussarela, calabresa fatiada, cebola e orégano', details: 'A clássica da casa: calabresa fatiada fina e cebola em rodelas, assada no forno a lenha.', tags: [], surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: ['bestseller'], available: true, sold: 412 },
+    { id: 'mussarela', name: 'Mussarela', tier: 'tradicional', recipe: 'mussarela', ingredients: 'Molho de tomate, mussarela, tomate, azeitona e orégano', details: 'Mussarela derretida e dourada com rodelas de tomate. Simples e certeira.', tags: ['veg'], surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 305 },
+    { id: 'frango-catupiry', name: 'Frango com Catupiry', tier: 'tradicional', recipe: 'frango', ingredients: 'Molho de tomate, frango desfiado temperado, Catupiry original e orégano', details: 'Frango desfiado e temperado na casa, coberto com Catupiry original.', tags: [], surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: ['bestseller'], available: true, sold: 388 },
+    { id: 'portuguesa', name: 'Portuguesa', tier: 'tradicional', recipe: 'portuguesa', ingredients: 'Mussarela, presunto, ovo, cebola, ervilha e azeitona', details: 'Recheio farto de presunto, ovo cozido e ervilha. Receita tradicional.', tags: [], surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 241 },
+    { id: 'quatro-queijos', name: 'Quatro Queijos', tier: 'tradicional', recipe: 'quatroQueijos', ingredients: 'Mussarela, provolone, parmesão e gorgonzola', details: 'Quatro queijos derretidos juntos. O gorgonzola deixa o sabor mais intenso.', tags: ['veg'], surcharge: { P: 2, M: 3, G: 4, GG: 5 }, badges: [], available: true, sold: 226 },
+    { id: 'marguerita', name: 'Marguerita', tier: 'tradicional', recipe: 'marguerita', ingredients: 'Molho de tomate, mussarela de búfala, tomate e manjericão fresco', details: 'Búfala, tomate e manjericão fresco. A italiana de verdade.', tags: ['veg'], surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 198 },
+    { id: 'bacon', name: 'Bacon', tier: 'tradicional', recipe: 'bacon', ingredients: 'Molho de tomate, mussarela, bacon crocante e orégano', details: 'Bacon em cubos, crocante, sobre mussarela bem derretida.', tags: [], surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 187 },
+    { id: 'pepperoni', name: 'Pepperoni', tier: 'tradicional', recipe: 'pepperoni', ingredients: 'Molho de tomate, mussarela e pepperoni levemente picante', details: 'Fatias de pepperoni que ficam crocantes nas bordas. Picância leve.', tags: ['spicy'], surcharge: { P: 2, M: 3, G: 4, GG: 5 }, badges: [], available: true, sold: 264 },
 
-    { id: 'carne-seca', name: 'Carne Seca com Catupiry', tier: 'especial', recipe: 'carneSeca', ingredients: 'Carne seca desfiada, Catupiry, cebola roxa e mussarela', surcharge: { P: 6, M: 8, G: 10, GG: 12 }, badges: ['new'], available: true, sold: 142 },
-    { id: 'rucula', name: 'Rúcula com Tomate Seco', tier: 'especial', recipe: 'rucula', ingredients: 'Mussarela de búfala, rúcula, tomate seco e lascas de parmesão', surcharge: { P: 5, M: 7, G: 9, GG: 11 }, badges: [], available: true, sold: 96 },
-    { id: 'fornalha', name: 'Fornalha da Casa', tier: 'especial', recipe: 'fornalha', ingredients: 'Pepperoni, calabresa artesanal, pimenta biquinho e mel picante', surcharge: { P: 6, M: 8, G: 10, GG: 12 }, badges: ['house'], available: true, sold: 173 },
-    { id: 'camarao', name: 'Camarão ao Alho', tier: 'especial', recipe: 'camarao', ingredients: 'Camarão salteado no alho, mussarela, Catupiry e salsinha', surcharge: { P: 10, M: 13, G: 16, GG: 19 }, badges: [], available: false, sold: 64 },
+    { id: 'carne-seca', name: 'Carne Seca com Catupiry', tier: 'especial', recipe: 'carneSeca', ingredients: 'Carne seca desfiada, Catupiry, cebola roxa e mussarela', details: 'Carne seca desfiada na mão, com Catupiry e cebola roxa.', tags: [], surcharge: { P: 6, M: 8, G: 10, GG: 12 }, badges: ['new'], available: true, sold: 142 },
+    { id: 'rucula', name: 'Rúcula com Tomate Seco', tier: 'especial', recipe: 'rucula', ingredients: 'Mussarela de búfala, rúcula, tomate seco e lascas de parmesão', details: 'A rúcula entra depois de assar, fresquinha, com tomate seco e parmesão.', tags: ['veg'], surcharge: { P: 5, M: 7, G: 9, GG: 11 }, badges: [], available: true, sold: 96 },
+    { id: 'fornalha', name: 'Fornalha da Casa', tier: 'especial', recipe: 'fornalha', ingredients: 'Pepperoni, calabresa artesanal, pimenta biquinho e mel picante', details: 'A assinatura da casa: doce, picante e defumada, com mel picante por cima.', tags: ['spicy'], surcharge: { P: 6, M: 8, G: 10, GG: 12 }, badges: ['house'], available: true, sold: 173 },
+    { id: 'camarao', name: 'Camarão ao Alho', tier: 'especial', recipe: 'camarao', ingredients: 'Camarão salteado no alho, mussarela, Catupiry e salsinha', details: 'Camarão salteado no alho e azeite, com Catupiry e salsinha.', tags: [], surcharge: { P: 10, M: 13, G: 16, GG: 19 }, badges: [], available: false, sold: 64 },
 
-    { id: 'chocolate-morango', name: 'Chocolate com Morango', tier: 'doce', recipe: 'chocMorango', ingredients: 'Chocolate ao leite, morangos frescos e fios de chocolate branco', surcharge: { P: 2, M: 3, G: 4, GG: 5 }, badges: ['bestseller'], available: true, sold: 131 },
-    { id: 'banana-canela', name: 'Banana com Canela', tier: 'doce', recipe: 'banana', ingredients: 'Banana, açúcar, canela e leite condensado', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 74 },
-    { id: 'romeu-julieta', name: 'Romeu e Julieta', tier: 'doce', recipe: 'romeuJulieta', ingredients: 'Goiabada cremosa e queijo minas', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 58 },
-    { id: 'prestigio', name: 'Prestígio', tier: 'doce', recipe: 'prestigio', ingredients: 'Chocolate ao leite e coco ralado', surcharge: { P: 2, M: 3, G: 4, GG: 5 }, badges: [], available: true, sold: 69 }
+    { id: 'chocolate-morango', name: 'Chocolate com Morango', tier: 'doce', recipe: 'chocMorango', ingredients: 'Chocolate ao leite, morangos frescos e fios de chocolate branco', details: 'Chocolate ao leite cremoso com morangos cortados na hora.', tags: [], surcharge: { P: 2, M: 3, G: 4, GG: 5 }, badges: ['bestseller'], available: true, sold: 131 },
+    { id: 'banana-canela', name: 'Banana com Canela', tier: 'doce', recipe: 'banana', ingredients: 'Banana, açúcar, canela e leite condensado', details: 'Banana assada com canela e um fio de leite condensado.', tags: [], surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 74 },
+    { id: 'romeu-julieta', name: 'Romeu e Julieta', tier: 'doce', recipe: 'romeuJulieta', ingredients: 'Goiabada cremosa e queijo minas', details: 'Goiabada cremosa derretida sobre queijo minas.', tags: [], surcharge: { P: 0, M: 0, G: 0, GG: 0 }, badges: [], available: true, sold: 58 },
+    { id: 'prestigio', name: 'Prestígio', tier: 'doce', recipe: 'prestigio', ingredients: 'Chocolate ao leite e coco ralado', details: 'Chocolate ao leite coberto de coco ralado.', tags: [], surcharge: { P: 2, M: 3, G: 4, GG: 5 }, badges: [], available: true, sold: 69 }
   ];
+
+  // Selos informativos dos sabores (aparecem no card e nos detalhes)
+  const FLAVOR_TAGS = { veg: 'Vegetariana', spicy: 'Picante' };
 
   const TIER_LABEL = { tradicional: 'Tradicionais', especial: 'Especiais', doce: 'Doces' };
   const TIER_CATEGORY = { tradicional: 'pizzas', especial: 'especiais', doce: 'doces' };
@@ -235,6 +238,6 @@
 
   window.Fornalha = Object.assign(window.Fornalha || {}, {
     STORE, CATEGORIES, SIZES, FLAVORS, PRODUCTS, EXTRAS, BORDERS, BANNERS, PROMOTIONS, LEGAL,
-    TIER_LABEL, TIER_CATEGORY, DEMO_ORDERS, DEMO_STATS, storage, catalog, saveOverride
+    TIER_LABEL, TIER_CATEGORY, FLAVOR_TAGS, DEMO_ORDERS, DEMO_STATS, storage, catalog, saveOverride
   });
 })();

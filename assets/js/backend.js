@@ -28,7 +28,7 @@
   const toDb = patch => Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined).map(([k, v]) => [TO_DB[k] || k, v]));
 
   const mapSize = r => ({ id: r.id, name: r.name, cm: r.cm, slices: r.slices, maxFlavors: r.max_flavors, price: Number(r.price) });
-  const mapFlavor = r => ({ id: r.id, name: r.name, tier: r.tier, recipe: r.recipe, ingredients: r.ingredients, surcharge: r.surcharge || {}, badges: r.badges || [], available: r.available, sold: r.sold || 0, photo: r.photo_url || null });
+  const mapFlavor = r => ({ id: r.id, name: r.name, tier: r.tier, recipe: r.recipe, ingredients: r.ingredients, details: r.details || '', tags: r.tags || [], surcharge: r.surcharge || {}, badges: r.badges || [], available: r.available, sold: r.sold || 0, photo: r.photo_url || null });
   const mapProduct = r => ({
     id: r.id, category: r.category, kind: r.kind, name: r.name, description: r.description, price: Number(r.price),
     oldPrice: num(r.old_price), fixedSize: r.fixed_size || undefined, allowedTiers: r.allowed_tiers || undefined,

@@ -546,13 +546,15 @@
   }
   function flavorForm(f) {
     const isNew = !f;
-    f = f || { id: '', name: '', ingredients: '', tier: 'tradicional', recipe: 'mussarela', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, available: true, badges: [] };
+    f = f || { id: '', name: '', ingredients: '', details: '', tags: [], tier: 'tradicional', recipe: 'mussarela', surcharge: { P: 0, M: 0, G: 0, GG: 0 }, available: true, badges: [] };
     openPanel(`<header class="panel-head"><div><p class="eyebrow">${isNew ? 'Novo sabor' : 'Editar sabor'}</p><h2 class="display panel-title" id="panelTitle">${isNew ? 'Adicionar sabor' : esc(f.name)}</h2></div><button type="button" class="icon-btn is-filled" data-close aria-label="Fechar">${icon('x')}</button></header>
       <form class="panel-body form-grid" novalidate>
         <div class="flavor-preview">${Pz.svg({ flavors: [f.name ? f : CAT.flavors[1]], divisions: 1 })}</div>
         <div class="field" id="ffName"><label class="field-label" for="fName">Nome</label><input class="input" id="fName" value="${esc(f.name)}" maxlength="40"><p class="field-error">${icon('alert', 14)}Dê um nome ao sabor.</p></div>
         <div class="field"><label class="field-label" for="fRecipe">Ilustração <span class="opt">(usada quando não há foto)</span></label><select class="select input" id="fRecipe">${Object.entries(RECIPE_LABEL).map(([k, l]) => `<option value="${k}" ${f.recipe === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-        <div class="field"><label class="field-label" for="fIng">Ingredientes</label><textarea class="textarea" id="fIng" rows="2" maxlength="140">${esc(f.ingredients)}</textarea><p class="field-help">O cliente vê este texto ao escolher o sabor.</p></div>
+        <div class="field"><label class="field-label" for="fIng">Ingredientes</label><textarea class="textarea" id="fIng" rows="2" maxlength="140">${esc(f.ingredients)}</textarea><p class="field-help">Separe por vírgula. No cardápio cada ingrediente vira um item em “O que vem na pizza”.</p></div>
+        <div class="field"><label class="field-label" for="fDetails">Detalhe curto <span class="opt">(opcional)</span></label><textarea class="textarea" id="fDetails" rows="2" maxlength="160" placeholder="Ex.: A clássica da casa, assada no forno a lenha.">${esc(f.details || '')}</textarea><p class="field-help">Uma frase que aparece nos detalhes do sabor.</p></div>
+        <fieldset class="fieldset"><legend class="field-label">Selos</legend>${Object.entries(F.FLAVOR_TAGS).map(([k, l]) => `<label class="check"><input type="checkbox" data-ftag="${k}" ${(f.tags || []).includes(k) ? 'checked' : ''}><span>${l}</span></label>`).join('')}</fieldset>
         <div class="field"><label class="field-label" for="fTier">Categoria</label><select class="select input" id="fTier">${Object.entries(F.TIER_LABEL).map(([k, l]) => `<option value="${k}" ${f.tier === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
         <fieldset class="fieldset"><legend class="field-label">Adicional por tamanho</legend>
           <div class="sur-grid">${['P', 'M', 'G', 'GG'].map(s => `<label class="field"><span class="field-label">${s}</span><input class="input tabular" inputmode="numeric" data-sur="${s}" value="${brl(f.surcharge[s] || 0)}"></label>`).join('')}</div>
@@ -991,7 +993,7 @@
     return { name: p.name, description: p.description, category: p.category, kind: p.kind, price: p.price, oldPrice: p.oldPrice ?? null, fixedSize: p.fixedSize ?? null, allowedTiers: p.allowedTiers ?? null, includes: p.includes ?? null, art: p.art || {}, badges: p.badges || [], photo: p.photo ?? null };
   }
   function flavorRow(f) {
-    return { name: f.name, tier: f.tier, recipe: f.recipe, ingredients: f.ingredients, surcharge: f.surcharge, badges: f.badges || [], photo: f.photo ?? null };
+    return { name: f.name, tier: f.tier, recipe: f.recipe, ingredients: f.ingredients, details: f.details || '', tags: f.tags || [], surcharge: f.surcharge, badges: f.badges || [], photo: f.photo ?? null };
   }
 
   document.addEventListener('click', e => {
@@ -1126,7 +1128,7 @@
         const current = id ? CAT.flavors.find(f => f.id === id) : null;
         const sur = {}; $$('[data-sur]').forEach(i => { sur[i.dataset.sur] = U.parseMoney(i.value); });
         const badges = (current ? current.badges.filter(b => b !== 'bestseller') : []).concat($('#fBest').checked ? ['bestseller'] : []);
-        const patch = { name: nameEl.value.trim(), ingredients: $('#fIng').value.trim(), tier: $('#fTier').value, recipe: $('#fRecipe').value, surcharge: sur, badges };
+        const patch = { name: nameEl.value.trim(), ingredients: $('#fIng').value.trim(), details: $('#fDetails').value.trim(), tags: $$('[data-ftag]').filter(i => i.checked).map(i => i.dataset.ftag), tier: $('#fTier').value, recipe: $('#fRecipe').value, surcharge: sur, badges };
         const available = $('#fAvail').checked;
         busy(el, async () => {
           const photo = await uploadPending();
