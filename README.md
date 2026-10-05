@@ -5,7 +5,7 @@ Cardápio digital em que o cliente **monta a pizza fatia por fatia** e envia o p
 | Página | O que tem |
 |---|---|
 | [`index.html`](index.html) | Cardápio → montagem da pizza → carrinho → checkout (dados, entrega, pagamento, revisão) → mensagem pronta no WhatsApp |
-| [`admin.html`](admin.html) | Login, início com pedidos de hoje, cozinha ao vivo e alarme de novos pedidos, pedidos em kanban (tempo real), produtos, sabores, tamanhos, adicionais, configurações, equipe e LGPD |
+| [`admin.html`](admin.html) | Login, início com pedidos de hoje, cozinha ao vivo, alarme de novos pedidos e relatório do dia em PDF (fluxo de pedidos e caixa), pedidos em kanban (tempo real), produtos, sabores, tamanhos, adicionais, configurações, equipe e LGPD |
 | [`estados.html`](estados.html) | Galeria de todos os estados da interface (loading, vazio, erro, fechado, sem conexão, falha no WhatsApp…) |
 | [`docs/COLOCAR-NO-AR.md`](docs/COLOCAR-NO-AR.md) | **Passo a passo para publicar** com GitHub, Supabase e Vercel |
 | [`docs/ESPECIFICACAO.md`](docs/ESPECIFICACAO.md) | Especificação: tokens, regras de preço, estados, responsividade, segurança, dados e API |

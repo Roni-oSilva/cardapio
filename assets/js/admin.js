@@ -256,7 +256,7 @@
     const greet = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
     const k = ordersKpi(), up = k.delta >= 0;
     const live = allOrders().filter(o => o.status !== 'finalizado');
-    return `${pageHead(`${greet}, ${esc(state.user.name.split(' ')[0])}`, `Resumo de hoje, ${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}`, `<a class="btn btn-secondary btn-sm" href="#pedidos" data-act="nav" data-view="pedidos">${icon('orders', 16)}Ver pedidos</a>`)}
+    return `${pageHead(`${greet}, ${esc(state.user.name.split(' ')[0])}`, `Resumo de hoje, ${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}`, `${canReport() ? `<button type="button" class="btn btn-primary btn-sm" data-act="report">${icon('download', 16)}Relatório do dia</button>` : ''}<a class="btn btn-secondary btn-sm" href="#pedidos" data-act="nav" data-view="pedidos">${icon('orders', 16)}Ver pedidos</a>`)}
       <section class="dash">
           <article class="kpi">
             <p class="kpi-label">Pedidos hoje</p>
@@ -310,7 +310,7 @@
     const q = state.orderQuery.trim().toLowerCase();
     const list = allOrders().filter(o => state.orderFilter === 'todos' || o.mode === state.orderFilter)
       .filter(o => !q || String(o.number).includes(q) || o.customer.toLowerCase().includes(q));
-    return `${pageHead('Pedidos de hoje', `${U.plural(list.length, 'pedido', 'pedidos')} · arraste os cards entre as colunas ou use o botão de cada pedido`)}
+    return `${pageHead('Pedidos de hoje', `${U.plural(list.length, 'pedido', 'pedidos')} · arraste os cards entre as colunas ou use o botão de cada pedido`, canReport() ? `<button type="button" class="btn btn-secondary btn-sm" data-act="report">${icon('download', 16)}Relatório do dia</button>` : '')}
       <div class="toolbar">
         <div class="input-wrap toolbar-search">${icon('search', 18)}<label class="sr-only" for="orderQ">Buscar pedido</label><input class="input" id="orderQ" type="search" placeholder="Buscar por número ou cliente" value="${esc(state.orderQuery)}"></div>
         <div class="seg" role="group" aria-label="Filtrar por tipo">${[['todos', 'Todos'], ['entrega', 'Entrega'], ['retirada', 'Retirada']].map(([v, l]) => `<button type="button" data-act="order-filter" data-v="${v}" aria-pressed="${state.orderFilter === v}">${l}</button>`).join('')}</div>
@@ -770,6 +770,8 @@
 
   document.addEventListener('input', e => {
     const t = e.target;
+    if (t.id === 'rFund') { t.value = U.maskMoney(t.value); updateReportPreview(); return; }
+    if (t.id === 'rDay') { updateReportPreview(); return; }
     if (t.classList.contains('otp-cell')) {
       t.value = t.value.replace(/\D/g, '').slice(0, 1);
       if (t.value) { const next = $(`.otp-cell[data-otp="${+t.dataset.otp + 1}"]`); if (next) next.focus(); }
@@ -854,9 +856,9 @@
   /* ---------- ajudantes de gravação ---------- */
   const slug = str => (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'item';
   const newId = name => `${slug(name)}-${Math.random().toString(36).slice(2, 6)}`;
-  async function busy(btn, fn) {
+  async function busy(btn, fn, label = 'Salvando…') {
     const html = btn ? btn.innerHTML : '';
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Salvando…'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = `<span class="spinner" aria-hidden="true"></span>${label}`; }
     try { return await fn(); }
     catch (err) { U.toast(esc(err.message || 'Não foi possível salvar.'), { type: 'error', duration: 6000 }); return undefined; }
     finally { if (btn && document.contains(btn)) { btn.disabled = false; btn.innerHTML = html; } }
@@ -924,6 +926,8 @@
       }
       // pedidos
       case 'order': orderDetail(+el.dataset.n); break;
+      case 'report': reportPanel(); break;
+      case 'report-pdf': busy(el, downloadReport, 'Gerando PDF…'); break;
       case 'alarm-silence': Alarm.silence(); break;
       case 'alarm-toggle': Alarm.toggle(); break;
       case 'alarm-test': Alarm.test(); break;
@@ -1171,6 +1175,73 @@
       state.auth = 'login'; render();
       U.openOverlay($('#expired'), { focus: '[data-act="relogin"]' });
     }, 30000);
+  }
+
+  /* ---------- Relatório do dia (PDF) ---------- */
+  const canReport = () => ['owner', 'manager'].includes(state.role);
+  const dayIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const METHOD_BY_LABEL = l => (/dinheiro/i.test(l) ? 'cash' : /pix/i.test(l) ? 'pix' : 'card');
+  /** Pedidos de um dia (AAAA-MM-DD) no formato do relatório, incluindo cancelados. */
+  function reportOrders(iso) {
+    const source = REAL ? state.orders : allOrders();
+    return source.map(o => {
+      let at;
+      if (o.createdAt) at = new Date(o.createdAt);
+      else { at = new Date(); const [h, m] = (o.time || '0:0').split(':').map(Number); at.setHours(h, m, 0, 0); }
+      const products = (o.lines && o.lines.length)
+        ? o.lines.map(l => { const p = l.productId && CAT.products.find(x => x.id === l.productId); return { label: l.type === 'pizza' ? (p ? p.name : `Pizza ${l.sizeId}`) : (p ? p.name : 'Item'), qty: l.qty || 1 }; })
+        : (o.items || []).map(t => { const m = /^(\d+)x\s+(.*)$/.exec(t); const label = (m ? m[2] : t).split(' · ')[0]; return { label, qty: m ? +m[1] : 1 }; });
+      return { number: o.number, createdAt: at, time: at.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), customer: o.customer, mode: o.mode, method: o.method || METHOD_BY_LABEL(o.pay || ''), status: o.status, total: o.total, fee: o.fee || 0, products };
+    }).filter(o => dayIso(o.createdAt) === iso);
+  }
+  function savedFund() { try { return parseFloat(localStorage.getItem('fornalha:fundoTroco') || '0') || 0; } catch (e) { return 0; } }
+  function reportPanel() {
+    const today = new Date(), min = new Date(); min.setDate(min.getDate() - 29);
+    openPanel(`<header class="panel-head"><div><p class="eyebrow">PDF</p><h2 class="display panel-title" id="panelTitle">Relatório do dia</h2></div><button type="button" class="icon-btn is-filled" data-close aria-label="Fechar">${icon('x')}</button></header>
+      <form class="panel-body form-grid" novalidate>
+        <div class="field"><label class="field-label" for="rDay">Dia</label><input class="input" id="rDay" type="date" value="${dayIso(today)}" min="${dayIso(min)}" max="${dayIso(today)}"></div>
+        <div class="field"><label class="field-label" for="rFund">Fundo de troco <span class="opt">(dinheiro que já estava no caixa ao abrir)</span></label><input class="input tabular" id="rFund" inputmode="numeric" value="${brl(savedFund())}"></div>
+        <div class="report-preview" id="rPreview" aria-live="polite"></div>
+        <p class="field-help">O PDF traz o resumo do dia, o caixa, as formas de pagamento, o fluxo de pedidos por hora, os mais vendidos e a lista de todos os pedidos.</p>
+      </form>
+      <footer class="panel-foot"><div class="panel-foot-row"><button type="button" class="btn btn-secondary" data-close>Cancelar</button><button type="button" class="btn btn-primary" data-act="report-pdf">${icon('download', 18)}Baixar PDF</button></div></footer>`);
+    updateReportPreview();
+  }
+  function reportInputs() {
+    const iso = ($('#rDay') && $('#rDay').value) || dayIso(new Date());
+    const fund = U.parseMoney($('#rFund') ? $('#rFund').value : '0');
+    return { iso, fund };
+  }
+  function updateReportPreview() {
+    const el = $('#rPreview');
+    if (!el) return;
+    const { iso, fund } = reportInputs();
+    const R = Relatorio.summarize(reportOrders(iso), { fund });
+    el.innerHTML = `<dl class="rp-grid">
+        <div><dt>Pedidos</dt><dd class="tabular">${R.valid.length}${R.canceled.length ? ` <small>+ ${R.canceled.length} cancelado${R.canceled.length > 1 ? 's' : ''}</small>` : ''}</dd></div>
+        <div><dt>Faturamento</dt><dd class="tabular">${brl(R.revenue)}</dd></div>
+        ${R.byMethod.map(m => `<div><dt>${m.label}</dt><dd class="tabular">${brl(m.total)} <small>${m.count}</small></dd></div>`).join('')}
+      </dl>
+      <div class="rp-cash"><span>Deve ter no caixa</span><strong class="tabular">${brl(R.cash.expected)}</strong><small>Fundo de troco ${brl(R.cash.fund)} + dinheiro de pedidos finalizados ${brl(R.cash.done)}</small></div>
+      ${R.openCount ? `<p class="rp-warn">${icon('alert', 16)}${U.plural(R.openCount, 'pedido ainda em andamento', 'pedidos ainda em andamento')}${R.cash.openCount ? ` (${brl(R.cash.open)} em dinheiro, entra no caixa ao finalizar)` : ''}.</p>` : ''}`;
+  }
+  async function downloadReport() {
+    const { iso, fund } = reportInputs();
+    try { localStorage.setItem('fornalha:fundoTroco', String(fund)); } catch (e) { /* ignore */ }
+    if (REAL) await loadOrders();
+    const R = Relatorio.summarize(reportOrders(iso), { fund });
+    const [y, m, d] = iso.split('-').map(Number);
+    const day = new Date(y, m - 1, d);
+    const now = new Date();
+    const doc = await Relatorio.pdf(R, {
+      store: CAT.store.fullName || CAT.store.name || 'Fornalha',
+      dateLong: day.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+      dateShort: day.toLocaleDateString('pt-BR'),
+      generatedAt: `${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+      user: state.user.name
+    });
+    doc.save(`relatorio-${iso}.pdf`);
+    U.toast('Relatório baixado');
   }
 
   /* ---------- Alarme de novos pedidos ----------

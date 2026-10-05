@@ -47,7 +47,7 @@
       time: d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       customer: r.customer_name, phone: U.maskPhone(r.customer_phone),
       total: Number(r.total), subtotal: Number(r.subtotal), fee: Number(r.fee),
-      pay: PAY[r.payment_method] || r.payment_method, status: r.status, mode: r.mode,
+      pay: PAY[r.payment_method] || r.payment_method, method: r.payment_method, changeFor: r.change_for ? Number(r.change_for) : null, status: r.status, mode: r.mode,
       district: r.address ? r.address.district : '—', address: r.address,
       items: r.summary || [], lines: r.items || [], note: notes.join(' · ')
     };
